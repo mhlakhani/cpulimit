@@ -1,4 +1,4 @@
-VERSION?=2.0
+VERSION?=2.1
 PREFIX?=/usr
 CFLAGS?=-Wall -O2 -DVERSION=$(VERSION)
 CC?=gcc
@@ -23,17 +23,17 @@ tests:
 install: cpulimit
 	mkdir -p ${PREFIX}/bin
 	mkdir -p ${PREFIX}/share/man/man1
-	cp cpulimit ${PREFIX}/bin
-	cp cpulimit.1.gz ${PREFIX}/share/man/man1
+	cp cpulimit ${PREFIX}/bin/limitcpu
+	cp cpulimit.1.gz ${PREFIX}/share/man/man1/limitcpu.1.gz
 
 deinstall:
-	rm -f ${PREFIX}/bin/cpulimit
-	rm -f ${PREFIX}/share/man/man1/cpulimit.1.gz
+	rm -f ${PREFIX}/bin/limitcpu
+	rm -f ${PREFIX}/share/man/man1/limitcpu.1.gz
 
 clean:
 	rm -f *~ cpulimit
 	$(MAKE) -C test clean
 
 tarball: clean
-	cd .. && tar czf cpulimit-$(VERSION).tar.gz cpulimit-$(VERSION)
+	cd .. && tar czf limitcpu-$(VERSION).tar.gz limitcpu-$(VERSION)
 	

@@ -18,6 +18,9 @@
  * Date: Jan 29, 2013
  * Version 1.2 and newer
  *
+ * Modifications and updates by: Hasnain Lakhani
+ * Date: Mar 26, 2014
+ * Version 2.1
  */
 
 
@@ -77,7 +80,7 @@
 #endif
 
 #ifndef VERSION
-#define VERSION 2.0
+#define VERSION 2.1
 #endif
 
 //pid of the controlled process
@@ -95,6 +98,9 @@ int nice_lim;
 
 // number of CPUs we detected
 int NCPU;
+
+// quiet mode
+int quiet = FALSE;
 
 //reverse byte search
 // void *memrchr(const void *s, int c, size_t n);
@@ -116,7 +122,7 @@ int Check_Us(pid_t target_pid)
    this_pid = getpid();
    if (this_pid == target_pid)
    {
-      printf("We cannot throttle ourselves.\n");
+      fprintf(stderr, "We cannot throttle ourselves.\n");
       exit(7);
    }
    return TRUE;
@@ -178,7 +184,7 @@ int waitforpid(int pid) {
 				exit(2);
 			}
 			else {
-				printf("Warning: no target process found. Waiting for it...\n");
+				fprintf(stderr, "Warning: no target process found. Waiting for it...\n");
 			}
 		}
 
@@ -187,7 +193,8 @@ int waitforpid(int pid) {
 	}
 
 done:
-	printf("Process %d detected\n",pid);
+    if (!quiet)
+    	printf("Process %d detected\n",pid);
 	//now set high priority, if possible
 	// if (setpriority(PRIO_PROCESS,getpid(),-20)!=0) {
         /*
@@ -282,7 +289,7 @@ int getpidof(const char *process) {
 				exit(2);
 			}
 			else {
-				printf("Warning: no target process found. Waiting for it...\n");
+				fprintf(stderr, "Warning: no target process found. Waiting for it...\n");
 			}
 		}
 
@@ -291,7 +298,8 @@ int getpidof(const char *process) {
 	}
 
 done:
-	printf("Process %d detected\n",pid);
+    if (!quiet)
+    	printf("Process %d detected\n",pid);
 	//now set high priority, if possible
 	// if (setpriority(PRIO_PROCESS,getpid(),-20)!=0) {
         /*
@@ -325,7 +333,7 @@ int getjiffies(int pid)
    my_kernel = kvm_open(0, 0, 0, O_RDONLY, "kvm_open");
    if (! my_kernel)
    {
-      printf("Error opening kernel vm. You should be running as root.\n");
+      fprintf(stderr, "Error opening kernel vm. You should be running as root.\n");
       return -1;
    }
 
@@ -499,6 +507,7 @@ void print_usage(FILE *stream,int exit_code) {
 	fprintf(stream, "      -l, --limit=N      percentage of cpu allowed from 1 up.\n");
         fprintf(stream, "                         Usually 1 - %d00, but can be higher\n", NCPU);
         fprintf(stream, "                         on multi-core CPUs (mandatory)\n");
+        fprintf(stream, "      -q, --quiet        run in quiet mode (only print errors).\n");
         fprintf(stream, "      -k, --kill         kill processes going over their limit\n");
         fprintf(stream, "                         instead of just throttling them.\n");
         fprintf(stream, "      -r, --restore      Restore processes after they have\n");
@@ -538,7 +547,7 @@ int main(int argc, char **argv) {
 	//parse arguments
 	int next_option;
 	/* A string listing valid short options letters. */
-	const char* short_options="p:e:P:l:c:bkrvzh";
+	const char* short_options="p:e:P:l:c:bqkrvzh";
 	/* An array describing valid long options. */
 	const struct option long_options[] = {
 		{ "pid", required_argument, NULL, 'p' },
@@ -546,6 +555,7 @@ int main(int argc, char **argv) {
 		{ "path", required_argument, NULL, 'P' },
 		{ "limit", required_argument, NULL, 'l' },
                 { "background", no_argument, NULL, 'b' },
+        { "quiet", no_argument, NULL, 'q' },
 		{ "verbose", no_argument, NULL, 'v' },
 		{ "lazy", no_argument, NULL, 'z' },
 		{ "help", no_argument, NULL, 'h' },
@@ -615,6 +625,10 @@ int main(int argc, char **argv) {
 				verbose = TRUE;
                                 last_known_argument++;
 				break;
+            case 'q':
+                quiet = TRUE;
+                                last_known_argument++;
+                break;
 			case 'z':
 				lazy = TRUE;
                                 last_known_argument++;
@@ -841,7 +855,8 @@ wait_for_process:
 		//estimate how much the controlled process is using the cpu in its working interval
 		struct cpu_usage cu;
 		if (compute_cpu_usage(pid,workingtime,&cu)==-1) {
-			fprintf(stderr,"Process %d dead!\n",pid);
+            if (!quiet)
+    			fprintf(stderr,"Process %d dead!\n",pid);
 			if (lazy) exit(2);
 			//wait until our process appears
 			goto wait_for_process;		
@@ -883,7 +898,8 @@ wait_for_process:
                         // printf("Continue\n");
 			//resume process
 			if (kill(pid,SIGCONT)!=0) {
-				fprintf(stderr,"Process %d dead!\n",pid);
+                if (!quiet)
+    				fprintf(stderr,"Process %d dead!\n",pid);
 				if (lazy) exit(2);
 				//wait until our process appears
 				goto wait_for_process;
@@ -930,7 +946,8 @@ wait_for_process:
                      if (kill_process)
                      {
                          kill(pid, SIGKILL);
-                         fprintf(stderr, "Process %d killed.\n", pid);
+                         if (!quiet)
+                             fprintf(stderr, "Process %d killed.\n", pid);
                          if ( (lazy) && (! restore_process) ) 
                               exit(2);
                          // restart killed process
@@ -967,7 +984,8 @@ wait_for_process:
                         // printf("Stop\n");
 			//stop process, it has worked enough
 			if (kill(pid,SIGSTOP)!=0) {
-				fprintf(stderr,"Process %d dead!\n", pid);
+                if (!quiet)
+    				fprintf(stderr,"Process %d dead!\n", pid);
 				if (lazy) exit(2);
 				//wait until our process appears
 				goto wait_for_process;

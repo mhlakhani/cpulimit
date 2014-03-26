@@ -1,3 +1,10 @@
+=========== Changes in 2.1 ================
+
+* Added the --quiet (-q) flag to make 
+limitcpu run silently
+
+* Install as "limitcpu" not "cpulimit"
+
 =========== Changes in 2.0 ================
 
 * Added the -- flag to make sure child processes

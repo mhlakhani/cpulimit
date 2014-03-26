@@ -23,6 +23,7 @@ file named LICENSE.
 
 Copyright 2005, Angelo Marletta <marlonx80@hotmail.com>
 Copyright 2011-2014, Jesse Smith <jessefrgsmith@yahoo.ca>
+Copyright 2014, Hasnain Lakhani <m.hasnain.lakhani@gmail.com>
 
 
 
@@ -42,15 +43,15 @@ How to compile and install
 Once you have downloaded a copy of LimitCPU building should be fairly
 straight forward. First we unpack the source code
 
-tar zxf cpulimit-2.0.tar.gz
+tar zxf cpulimit-2.1.tar.gz
 
 Then we run the makefile.
 
-cd cpulimit-2.0
+cd cpulimit-2.1
 make
 
 This should produce the executable file "cpulimit". If you would like
-to install the program to make it available system-wide, run
+to install the program to make it available system-wide (as limitcpu), run
 
 make install
 
@@ -86,25 +87,25 @@ one process. This can be done with the following command where
 12345 is the process ID number of a running program and 25 is the
 maximum percentage of the CPU we are willing to give that program
 
-cpulimit -p 12345 -l 25
+limitxpu -p 12345 -l 25
 
 The above example will cause LimitCPU to keep an eye on the process
 with ID number 12345 until the program exits. Should we wish to
 run LimitCPU in the background we can use
 
-cpulimit -p 12345 -l 25 -b
+limitcpu -p 12345 -l 25 -b
 
 We can also limit running processes based on their name instead of
 their process ID, as in this example:
 
-cpulimit --exe /usr/bin/bigexe --limit 50
+limitcpu --exe /usr/bin/bigexe --limit 50
 
 The above example will keep an eye on "bigexe" and, if the application
 quits and another program called "bigexe" is run, LimitCPU will
 monitor the new process too. Should we wish to only track the first
 program and then exit, we can use 
 
-cpulimit --exe /usr/bin/bigexe --limit 50 -z
+limitcpu --exe /usr/bin/bigexe --limit 50 -z
 
 The "-z" flag tells LimitCPU to stop running once its target is
 no longer running itself.
@@ -116,7 +117,7 @@ the last program run and the -b flag tells cpulimit to
 run in the background, returning control to the shell.
 
 /usr/bin/someapp &
-cpulimit -p $! -l 25 -b
+limitcpu -p $! -l 25 -b
 
 
 Note: As of version 1.7 LimitCPU will attempt to guess the
@@ -127,7 +128,7 @@ automatic detection does not work, users can over-ride the
 number of CPUs LimitCPU thinks are available using the
 -c command line flag. For example
 
-cpulimit -c 2 -p 12345 -l 150
+limitcpu -c 2 -p 12345 -l 150
 
 
 Commands can be launched by LimitCPU by appending the command
@@ -135,7 +136,7 @@ to the end of of LimitCPU's argument list. For example, the
 following command will launch Firefox and limit it to 10% CPU
 usage:
 
-cpulimit -l 10 firefox
+limitcpu -l 10 firefox
 
 Sometimes we wish to launch other programs and pass them parameters.
 To avoid confusing cpulimit as to which parameters are for it and
@@ -144,7 +145,7 @@ example, the following command launches Firefox in Private Browsing
 mode. To make sure the "-p" in Firefox's "-private" option does not
 confuse cpulimit, we use the -- flag.
 
-cpulimit -l 25 -- firefox -private
+limitcpu -l 25 -- firefox -private
 
 In some special cases it may be desirable to kill a program
 instead of simple throttling its CPU usage. In these cases
@@ -152,14 +153,14 @@ the -k flag can be used. For example, if we want to run a
 program called "yellow" and kill it when it goes over 50%
 CPU usage run the following:
 
-cpulimit -l 50 -k yellow
+limitcpu -l 50 -k yellow
 
 The -k flag will terminate a process going over its limit,
 but what if we want to bring back the killed process to
 let it run again? For that purpose we have the -r flag. The
 -r flag causes a killed process to be restored.
 
-cpulimit -l 50 -k -r yellow
+limitcpu -l 50 -k -r yellow
 
 The restore flag (-r) only works when the process to launch
 has been launched by cpulimit. For this reason it is necessary
